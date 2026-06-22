@@ -1,35 +1,30 @@
 import { weeklySpotlight, computeStreaks, weeklyWeather } from '../compute';
 
-const FlameIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" style={{color:'#f4b942'}}>
-    <path d="M12 2c2.5 3.5-1.5 5-1.5 8.5a3.5 3.5 0 107 0c0-1.8-.8-2.8-.8-2.8 1.6 1 2.8 3.4 2.8 5.3a6.5 6.5 0 11-13 0c0-4.3 3.3-6.6 5.5-11z"/>
-  </svg>
-);
-const RocketIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" style={{color:'#ff6f4d'}}>
-    <path d="M12 2c4 3 5 8 3 13l-3 3-3-3c-2-5-1-10 3-13z"/>
-    <circle cx="12" cy="9" r="1.5" fill="#060718"/>
-  </svg>
-);
 const SunIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="#f4b942" strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="5" fill="#f4b942" stroke="none"/>
-    <line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/>
-    <line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/>
-    <line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/>
-    <line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/>
+  <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+    <circle cx="10" cy="10" r="4" fill="#d4900a"/>
+    <g stroke="#d4900a" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="10" y1="2" x2="10" y2="4"/>
+      <line x1="10" y1="16" x2="10" y2="18"/>
+      <line x1="2" y1="10" x2="4" y2="10"/>
+      <line x1="16" y1="10" x2="18" y2="10"/>
+      <line x1="4.1" y1="4.1" x2="5.5" y2="5.5"/>
+      <line x1="14.5" y1="14.5" x2="15.9" y2="15.9"/>
+      <line x1="4.1" y1="15.9" x2="5.5" y2="14.5"/>
+      <line x1="14.5" y1="5.5" x2="15.9" y2="4.1"/>
+    </g>
   </svg>
 );
 const CloudIcon = () => (
-  <svg viewBox="0 0 24 24" fill="#9ba3bc">
-    <path d="M7 18a4 4 0 010-8 5 5 0 019.6-1.5A4.5 4.5 0 0118.5 18H7z"/>
+  <svg viewBox="0 0 20 20" width="16" height="16" fill="#9ba3bc">
+    <path d="M6 14a3.5 3.5 0 010-7 4.5 4.5 0 018.7-1.2A3.75 3.75 0 0116 14H6z"/>
   </svg>
 );
 const MistIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="#9ba3bc" strokeWidth="2" strokeLinecap="round">
-    <line x1="3" y1="8" x2="21" y2="8"/>
-    <line x1="3" y1="13" x2="21" y2="13"/>
-    <line x1="3" y1="18" x2="21" y2="18"/>
+  <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#9ba3bc" strokeWidth="1.5" strokeLinecap="round">
+    <line x1="3" y1="7"  x2="17" y2="7"/>
+    <line x1="3" y1="11" x2="17" y2="11"/>
+    <line x1="3" y1="15" x2="17" y2="15"/>
   </svg>
 );
 
@@ -46,23 +41,36 @@ export default function Spotlight({ entries }) {
 
   return (
     <div className="card">
-      <div className="card-title">This week on the mountain <span className="muted">Resets every 7 days</span></div>
-      <div className="weather-row">
-        {ICONS[weather.type]}
-        <span className="weather-label">{weather.label}</span>
-        <span>· {weather.sub}</span>
-      </div>
-      <div className="spotlight-grid">
-        <div className="spotlight-box spot">
-          <div className="spot-label"><RocketIcon /> Climbing fastest this week</div>
-          <div className="spot-name">{spot ? spot.name : 'Nobody yet'}</div>
-          <div className="spot-sub">{spot ? `+${spot.pts} pts in the last 7 days` : 'Log an activity to take this spot'}</div>
+      <div className="spotlight-strip">
+
+        <div className="spot-weather">
+          {ICONS[weather.type]}
+          <span>
+            <strong>{weather.label}</strong>
+            <span className="spot-dim"> · {weather.sub}</span>
+          </span>
         </div>
-        <div className="spotlight-box streak">
-          <div className="spot-label"><FlameIcon /> Longest active streak</div>
-          <div className="spot-name">{topStreak ? topStreak[0] : 'Nobody yet'}</div>
-          <div className="spot-sub">{topStreak ? `${topStreak[1]} week${topStreak[1] > 1 ? 's' : ''} in a row` : 'Log something this week to start one'}</div>
+
+        <div className="spot-divider" />
+
+        <div className="spot-cell">
+          <div className="spot-cell-label">Fastest this week</div>
+          <div className="spot-cell-name">{spot ? spot.name : '—'}</div>
+          {spot && <div className="spot-cell-sub">+{spot.pts} pts in 7 days</div>}
         </div>
+
+        <div className="spot-divider" />
+
+        <div className="spot-cell">
+          <div className="spot-cell-label">Longest streak</div>
+          <div className="spot-cell-name">{topStreak ? topStreak[0] : '—'}</div>
+          {topStreak && (
+            <div className="spot-cell-sub">
+              {topStreak[1]} week{topStreak[1] > 1 ? 's' : ''} in a row
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

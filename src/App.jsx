@@ -1,22 +1,23 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
-import Mountain    from './components/Mountain';
-import Spotlight   from './components/Spotlight';
-import Podium      from './components/Podium';
-import Leaderboard from './components/Leaderboard';
-import Basecamps   from './components/Basecamps';
-import LogActivity from './components/LogActivity';
-import Guide       from './components/Guide';
-import SummitBanner from './components/SummitBanner';
-import ResetModal   from './components/ResetModal';
+import Mountain      from './components/Mountain';
+import Spotlight     from './components/Spotlight';
+import Podium        from './components/Podium';
+import Leaderboard   from './components/Leaderboard';
+import Basecamps     from './components/Basecamps';
+import LogActivity   from './components/LogActivity';
+import Guide         from './components/Guide';
+import SummitBanner  from './components/SummitBanner';
+import ResetModal    from './components/ResetModal';
+import SettingsModal from './components/SettingsModal';
 import {
   leaderboardData, teamData, computeStreaks,
   computeBadges, tierForPoints,
 } from './compute';
 import { TIERS } from './constants';
 
-// ── Confetti ─────────────────────────────────────────────────────────────────
+// ── Confetti ──────────────────────────────────────────────────────────────────
 const CONFETTI_COLORS = ['#ff6f4d','#e14f8a','#1ee3cf','#f4b942','#9b72ff','#4fc3f7'];
 
 function Confetti({ active }) {
@@ -44,14 +45,20 @@ function Confetti({ active }) {
   );
 }
 
-// ── LinkedIn icon ─────────────────────────────────────────────────────────────
+// ── Icons ─────────────────────────────────────────────────────────────────────
 const LIIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor">
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
     <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.33V9h3.41v1.56h.05a3.74 3.74 0 013.37-1.85c3.61 0 4.28 2.37 4.28 5.46v6.28zM5.34 7.43a2.07 2.07 0 11.01-4.14 2.07 2.07 0 010 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.23 0H1.77A1.77 1.77 0 000 1.77v20.46A1.77 1.77 0 001.77 24h20.46A1.77 1.77 0 0024 22.23V1.77A1.77 1.77 0 0022.23 0z"/>
   </svg>
 );
 
-// ── App ───────────────────────────────────────────────────────────────────────
+const GearIcon = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+    <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96a6.98 6.98 0 00-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+  </svg>
+);
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
 const TABS = [
   { id:'climb',     label:'The Climb' },
   { id:'basecamps', label:'Team Standings' },
@@ -59,23 +66,25 @@ const TABS = [
   { id:'guide',     label:'Points Guide' },
 ];
 
+// ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [entries,    setEntries]    = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [activeTab,  setActiveTab]  = useState('climb');
-  const [banner,     setBanner]     = useState(null);
-  const [confetti,   setConfetti]   = useState(false);
-  const [showReset,  setShowReset]  = useState(false);
+  const [entries,      setEntries]      = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [activeTab,    setActiveTab]    = useState('climb');
+  const [banner,       setBanner]       = useState(null);
+  const [confetti,     setConfetti]     = useState(false);
+  const [showReset,    setShowReset]    = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [label,        setLabel]        = useState('Alps LinkedIn Challenge');
   const appRef = useRef();
 
-  // ── Data fetching & polling ──────────────────────────────────────────────
+  // ── Fetch entries + settings ──────────────────────────────────────────────
   const fetchEntries = useCallback(async () => {
     try {
       const r = await fetch('/api/entries');
       if (!r.ok) throw new Error();
-      const data = await r.json();
-      setEntries(data);
-    } catch { /* silently ignore polling errors */ }
+      setEntries(await r.json());
+    } catch { /* silent */ }
     finally { setLoading(false); }
   }, []);
 
@@ -85,25 +94,32 @@ export default function App() {
     return () => clearInterval(id);
   }, [fetchEntries]);
 
-  // ── GSAP entrance ────────────────────────────────────────────────────────
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(d => { if (d.label) setLabel(d.label); })
+      .catch(() => {});
+  }, []);
+
+  // ── GSAP entrance ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (loading || !appRef.current) return;
     const ctx = gsap.context(() => {
       gsap.from('.card, .tabs, .header', {
-        y: 20, opacity: 0, duration: 0.55, ease: 'power2.out',
-        stagger: 0.07, clearProps: 'transform,opacity',
+        y: 16, opacity: 0, duration: 0.5, ease: 'power2.out',
+        stagger: 0.06, clearProps: 'transform,opacity',
       });
     }, appRef);
     return () => ctx.revert();
   }, [loading]);
 
-  // ── Derived state ────────────────────────────────────────────────────────
+  // ── Derived state ─────────────────────────────────────────────────────────
   const board   = useMemo(() => leaderboardData(entries), [entries]);
   const teams   = useMemo(() => teamData(entries), [entries]);
   const streaks = useMemo(() => computeStreaks(entries), [entries]);
   const badges  = useMemo(() => computeBadges(entries), [entries]);
 
-  // ── Actions ──────────────────────────────────────────────────────────────
+  // ── Actions ───────────────────────────────────────────────────────────────
   const showBanner = (text) => {
     setBanner(text);
     setConfetti(true);
@@ -112,13 +128,11 @@ export default function App() {
   };
 
   const logActivity = async (entry) => {
-    const prevBoard  = leaderboardData(entries);
-    const prevLeader = prevBoard[0];
-    const prevTierIdx = TIERS.indexOf(
-      tierForPoints(prevBoard.find(p => p.name === entry.name)?.points || 0)
-    );
+    const prevBoard   = leaderboardData(entries);
+    const prevLeader  = prevBoard[0];
+    const prevPts     = prevBoard.find(p => p.name === entry.name)?.points || 0;
+    const prevTierIdx = TIERS.indexOf(tierForPoints(prevPts));
 
-    // Optimistic update
     const next = [...entries, entry];
     setEntries(next);
 
@@ -130,8 +144,8 @@ export default function App() {
 
     const newBoard   = leaderboardData(next);
     const newLeader  = newBoard[0];
-    const myPoints   = newBoard.find(p => p.name === entry.name)?.points || 0;
-    const newTierIdx = TIERS.indexOf(tierForPoints(myPoints));
+    const myPts      = newBoard.find(p => p.name === entry.name)?.points || 0;
+    const newTierIdx = TIERS.indexOf(tierForPoints(myPts));
 
     if (newTierIdx > prevTierIdx) {
       showBanner(`${entry.name} reached ${TIERS[newTierIdx].name}`);
@@ -152,10 +166,10 @@ export default function App() {
     setTimeout(() => setBanner(null), 2800);
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', color:'var(--text2)', fontFamily:'IBM Plex Mono, monospace', fontSize:13 }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', color:'#6b7080', fontFamily:'IBM Plex Mono, monospace', fontSize:13 }}>
         Loading the mountain...
       </div>
     );
@@ -166,9 +180,18 @@ export default function App() {
       {/* Header */}
       <header className="header">
         <div className="header-left">
-          <span className="header-tag">Q{Math.ceil((new Date().getMonth() + 1) / 3)} · {new Date().getFullYear()} · Alps LinkedIn Challenge</span>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span className="header-tag">{label}</span>
+            <button
+              className="settings-btn"
+              onClick={() => setShowSettings(true)}
+              title="Edit challenge label"
+            >
+              <GearIcon />
+            </button>
+          </div>
           <h1>The Ascent</h1>
-          <span className="header-sub">Who's climbing the mountain this quarter?</span>
+          <span className="header-sub">Who's climbing the mountain this challenge?</span>
         </div>
         <a
           href="https://www.linkedin.com/company/alps-ltd"
@@ -206,10 +229,7 @@ export default function App() {
         </>
       )}
 
-      {activeTab === 'basecamps' && (
-        <Basecamps teams={teams} />
-      )}
-
+      {activeTab === 'basecamps' && <Basecamps teams={teams} />}
       {activeTab === 'log' && (
         <LogActivity
           entries={entries}
@@ -218,14 +238,18 @@ export default function App() {
           onShowReset={() => setShowReset(true)}
         />
       )}
-
       {activeTab === 'guide' && <Guide />}
 
       {/* Overlays */}
       <SummitBanner text={banner} />
       <Confetti active={confetti} />
-      {showReset && (
-        <ResetModal onConfirm={handleReset} onClose={() => setShowReset(false)} />
+      {showReset && <ResetModal onConfirm={handleReset} onClose={() => setShowReset(false)} />}
+      {showSettings && (
+        <SettingsModal
+          currentLabel={label}
+          onSave={setLabel}
+          onClose={() => setShowSettings(false)}
+        />
       )}
     </div>
   );
