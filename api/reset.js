@@ -1,4 +1,10 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
 const KEY = 'ascent:entries:v1';
 
 export default async function handler(req, res) {
@@ -12,6 +18,6 @@ export default async function handler(req, res) {
   if (password !== (process.env.RESET_PASSWORD || 'ThomasAlps01!'))
     return res.status(401).json({ error: 'Incorrect password' });
 
-  await kv.set(KEY, []);
+  await redis.set(KEY, []);
   return res.json({ ok: true });
 }
