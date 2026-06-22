@@ -37,26 +37,31 @@ export const TIERS = [
 ];
 
 export const BADGE_DEFS = [
-  { id: 'first_climb',  name: 'First Climb',  color: '#1ee3cf', desc: 'Logged your very first activity this quarter.' },
-  { id: 'storyteller',  name: 'Storyteller',  color: '#f4b942', desc: 'Posted about Alps or products 3+ times in a single month.' },
-  { id: 'squad_goals',  name: 'Squad Goals',  color: '#e14f8a', desc: 'Your whole team logged an activity in the same week.' },
+  // Original badges
+  { id: 'first_climb',  name: 'First Climb',        color: '#1ee3cf', desc: 'Logged your very first activity this quarter.' },
+  { id: 'storyteller',  name: 'Storyteller',         color: '#f4b942', desc: 'Posted about Alps or products 3+ times in a single month.' },
+  { id: 'squad_goals',  name: 'Squad Goals',         color: '#e14f8a', desc: 'Your whole team logged an activity in the same week.' },
+  // New badges
+  { id: 'early_bird',   name: 'Early Bird',          color: '#f4b942', desc: 'First person to log an activity in a given week.' },
+  { id: 'comeback',     name: 'Comeback',            color: '#9b72ff', desc: 'Returned to the challenge after a 3+ week absence.' },
+  { id: 'peak_bagger',  name: 'Peak Bagger',         color: '#f4b942', desc: 'Reached Peak Climber tier — 100 points or more.' },
+  { id: 'consistent',   name: 'Consistent Climber',  color: '#1ee3cf', desc: 'Logged at least once a week for 4 consecutive weeks.' },
+  { id: 'chatterbox',   name: 'Chatterbox',          color: '#e14f8a', desc: 'Left 10 or more genuine comments on Alps posts.' },
 ];
 
 // Mountain coordinate system: viewBox="0 -80 1000 640"
-// Peaks ascend left to right matching tier thresholds
 export const WAYPOINTS = [
-  { score: 0,   x: 40,  y: 530 }, // Trailhead
-  { score: 10,  x: 280, y: 370 }, // Basecamp
-  { score: 30,  x: 460, y: 265 }, // Ridge Walker
-  { score: 60,  x: 660, y: 150 }, // Summit Push
-  { score: 100, x: 860, y: 48  }, // Peak Climber
+  { score: 0,   x: 40,  y: 530 },
+  { score: 10,  x: 280, y: 370 },
+  { score: 30,  x: 460, y: 265 },
+  { score: 60,  x: 660, y: 150 },
+  { score: 100, x: 860, y: 48  },
 ];
-export const EXTENSION = { x: 980, y: 88 };
-export const VB_W = 1000;
-export const VB_H = 640; // total viewBox height (includes -80 offset)
-export const VB_Y_OFFSET = 80; // viewBox starts at y=-80
+export const EXTENSION  = { x: 980, y: 88 };
+export const VB_W       = 1000;
+export const VB_H       = 640;
+export const VB_Y_OFFSET = 80;
 
-// Static star positions (Fibonacci distribution to avoid clustering)
 export const STARS = Array.from({ length: 32 }, (_, i) => ({
   x: (i * 137.508) % 1000,
   y: -75 + (i * 53.2) % 90,

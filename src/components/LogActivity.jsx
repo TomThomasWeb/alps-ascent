@@ -3,37 +3,43 @@ import { ACTIONS, ROSTERS } from '../constants';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+function isValidUrl(str) {
+  if (!str) return true; // empty is fine
+  try { new URL(str); return true; } catch { return false; }
+}
+
 export default function LogActivity({ entries, onLog, onDelete, onShowReset }) {
   const [team,     setTeam]     = useState('');
   const [name,     setName]     = useState('');
   const [actionId, setActionId] = useState('');
   const [date,     setDate]     = useState(today());
-  const [note,     setNote]     = useState('');
+  const [url,      setUrl]      = useState('');
   const [saving,   setSaving]   = useState(false);
   const [flash,    setFlash]    = useState(null);
 
-  const teams   = Object.keys(ROSTERS);
-  const names   = team ? ROSTERS[team] || [] : [];
-  const action  = ACTIONS.find(a => a.id === actionId);
+  const teams  = Object.keys(ROSTERS);
+  const names  = team ? ROSTERS[team] || [] : [];
+  const action = ACTIONS.find(a => a.id === actionId);
+  const urlOk  = isValidUrl(url);
 
   useEffect(() => { setName(''); }, [team]);
-  useEffect(() => { setActionId(''); }, []);
 
   const handleSubmit = async () => {
     if (!team || !name || !actionId) return;
+    if (url && !urlOk) return;
     setSaving(true);
     const entry = {
-      id:       crypto.randomUUID(),
+      id: crypto.randomUUID(),
       team, name, actionId,
-      points:   action.points,
+      points: action.points,
       date,
-      note:     note.trim(),
-      created:  Date.now(),
+      url: url.trim(),
+      created: Date.now(),
     };
     await onLog(entry);
     setFlash(`+${action.points} pts logged for ${name}`);
     setTimeout(() => setFlash(null), 2500);
-    setActionId(''); setNote('');
+    setActionId(''); setUrl('');
     setSaving(false);
   };
 
@@ -41,16 +47,13 @@ export default function LogActivity({ entries, onLog, onDelete, onShowReset }) {
 
   return (
     <>
-      {/* Form */}
       <div className="card">
         <div className="card-title">Log an activity</div>
 
         {flash && (
-          <div style={{
-            background: 'rgba(30,227,207,0.12)', border: '1px solid rgba(30,227,207,0.25)',
-            borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--teal)',
-            marginBottom: 16, fontFamily: 'IBM Plex Mono, monospace',
-          }}>{flash}</div>
+          <div style={{ background:'rgba(10,158,150,0.1)', border:'1px solid rgba(10,158,150,0.25)', borderRadius:10, padding:'10px 14px', fontSize:14, color:'var(--teal)', marginBottom:16, fontFamily:'IBM Plex Mono, monospace' }}>
+            {flash}
+          </div>
         )}
 
         <div className="form-grid">
@@ -70,13 +73,11 @@ export default function LogActivity({ entries, onLog, onDelete, onShowReset }) {
           </div>
         </div>
 
-        <div className="field" style={{ marginBottom: 14 }}>
+        <div className="field" style={{ marginBottom:14 }}>
           <label>Activity</label>
           <select value={actionId} onChange={e => setActionId(e.target.value)}>
             <option value="">Select activity...</option>
-            {ACTIONS.map(a => (
-              <option key={a.id} value={a.id}>{a.label} (+{a.points} pts)</option>
-            ))}
+            {ACTIONS.map(a => <option key={a.id} value={a.id}>{a.label} (+{a.points} pts)</option>)}
           </select>
           <div className="action-hint">{action?.note || ''}</div>
         </div>
@@ -84,30 +85,30 @@ export default function LogActivity({ entries, onLog, onDelete, onShowReset }) {
         <div className="form-grid">
           <div className="field">
             <label>Date</label>
-            <input type="date" value={date} max={today()} onChange={e => setDate(e.target.value)} />
+            <input type="date" value={date} max={today()} onChange={e => setDate(e.target.value)}/>
           </div>
           <div className="field">
-            <label>Optional note or link</label>
+            <label>LinkedIn post URL (optional)</label>
             <input
-              type="text" value={note}
-              placeholder="e.g. post URL or short description"
-              onChange={e => setNote(e.target.value)}
+              type="url"
+              value={url}
+              placeholder="https://linkedin.com/posts/..."
+              onChange={e => setUrl(e.target.value)}
+              style={{ borderColor: url && !urlOk ? 'var(--coral)' : undefined }}
             />
+            {url && !urlOk && <div style={{ fontSize:11, color:'var(--coral)', marginTop:4 }}>Enter a valid URL or leave blank</div>}
           </div>
         </div>
 
-        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-          <button
-            className="btn-primary"
-            onClick={handleSubmit}
-            disabled={!team || !name || !actionId || saving}
-          >
-            {saving ? 'Saving...' : `Log activity${action ? ` · +${action.points} pts` : ''}`}
-          </button>
-        </div>
+        <button
+          className="btn-primary"
+          onClick={handleSubmit}
+          disabled={!team || !name || !actionId || saving || (url && !urlOk)}
+        >
+          {saving ? 'Saving...' : `Log activity${action ? ` · +${action.points} pts` : ''}`}
+        </button>
       </div>
 
-      {/* Activity log */}
       <div className="card">
         <div className="card-title">
           Recent activity
@@ -123,7 +124,13 @@ export default function LogActivity({ entries, onLog, onDelete, onShowReset }) {
                 <div className="log-left">
                   <div className="log-who">{e.name} <span style={{ color:'var(--text2)', fontWeight:400 }}>({e.team})</span></div>
                   <div className="log-what">{act?.label || e.actionId} · {e.date}</div>
-                  {e.note && <div className="log-what" style={{ fontStyle:'italic' }}>{e.note}</div>}
+                  {e.url && (
+                    <a href={e.url} target="_blank" rel="noopener noreferrer" className="log-url">
+                      View post →
+                    </a>
+                  )}
+                  {/* Legacy: show plain note text if entry predates URL field */}
+                  {!e.url && e.note && <div className="log-what" style={{ fontStyle:'italic' }}>{e.note}</div>}
                 </div>
                 <div className="log-right">
                   <span className="log-pts">+{e.points}</span>
@@ -135,12 +142,10 @@ export default function LogActivity({ entries, onLog, onDelete, onShowReset }) {
         )}
       </div>
 
-      {/* Reset */}
       <div className="card">
         <div className="card-title" style={{ color:'var(--coral)' }}>Danger zone</div>
         <p style={{ fontSize:13, color:'var(--text2)', marginBottom:14, lineHeight:1.6 }}>
-          Resetting clears all activity for the quarter. Use this at the start of each new quarter.
-          The action requires the admin password and cannot be undone.
+          Resetting clears all activity for the current challenge. Use this at the start of each new period. The action requires the admin password and cannot be undone.
         </p>
         <button className="btn-danger" onClick={onShowReset}>Reset leaderboard</button>
       </div>
